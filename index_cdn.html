@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI SOC Automation Dashboard</title>
+
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+    <!-- Babel Standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- ApexCharts (Premium Charts) -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --sidebar-width: 260px;
+            --header-height: 64px;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0b1329;
+            --panel-bg: #111c44;
+            --text-primary: #f8fafc;
+            --text-secondary: #8f9bba;
+            --border-color: #1b2559;
+            --accent-blue: #4318ff;
+            --accent-red: #ff5b5b;
+            --accent-green: #01b574;
+            --accent-yellow: #ffb547;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .dashboard-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            gap: 0.5rem;
+        }
+
+        .sidebar-header span {
+            color: var(--accent-blue);
+        }
+
+        .nav-links {
+            padding: 1.5rem 0;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-right: 4px solid transparent;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background-color: rgba(59, 130, 246, 0.05);
+            color: var(--text-primary);
+            border-right-color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            height: var(--header-height);
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            padding: 0.5rem 1rem;
+            width: 300px;
+        }
+
+        .search-container input {
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            margin-left: 0.5rem;
+            width: 100%;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        .page-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Cards */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .metric-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+
+        .chart-panel h3 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Tables */
+        .data-table-container {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            background-color: rgba(0, 0, 0, 0.01);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .data-table tr:hover {
+            background-color: rgba(0, 0, 0, 0.01);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge.critical {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .badge.warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--accent-yellow);
+        }
+
+        .badge.info {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .ip-addr {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.4rem;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .page-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover,
+        .page-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            padding: 1rem;
+        }
+
+        .modal-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 780px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: var(--panel-bg);
+            z-index: 2;
+        }
+
+        .modal-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .forensic-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .forensic-section h4 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent-blue);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .forensic-section h4::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .ai-report-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            white-space: pre-wrap;
+            color: var(--text-primary);
+        }
+
+        .intel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .intel-item {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+
+        .intel-item label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .intel-item span {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .export-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(135deg, #4318ff, #818cf8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+
+        .export-btn:hover {
+            opacity: 0.85;
+        }
+
+        .row-clickable:hover {
+            cursor: pointer;
+            background: rgba(67, 24, 255, 0.06) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // ── helpers ──────────────────────────────────────────────
+        function severityClass(s) {
+            if (s >= 12) return 'critical';
+            if (s >= 8) return 'warning';
+            return 'info';
+        }
+
+        function exportDocReport(inc) {
+            const ts = new Date(inc.timestamp).toLocaleString();
+            const html = `
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+  body { font-family: Calibri, Arial, sans-serif; margin: 40px; color: #111; }
+  h1   { color: #1a1a6e; border-bottom: 2px solid #1a1a6e; padding-bottom: 8px; }
+  h2   { color: #2c3e7a; margin-top: 28px; font-size: 14pt; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+  th   { background: #2c3e7a; color: white; padding: 8px 12px; text-align: left; font-size: 10pt; }
+  td   { padding: 7px 12px; border: 1px solid #dde; font-size: 10pt; }
+  tr:nth-child(even) td { background: #f4f6fb; }
+  pre  { background: #f4f6fb; padding: 14px; border-left: 4px solid #2c3e7a; font-size: 9pt; white-space: pre-wrap; }
+  .badge-crit { background:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:12px; font-weight:bold; }
+  .badge-warn { background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:12px; font-weight:bold; }
+  .badge-info { background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:12px; font-weight:bold; }
+  .footer { margin-top:40px; font-size:9pt; color:#888; border-top:1px solid #ccc; padding-top:8px; }
+</style>
+</head><body>
+<h1>🛡️ AI SOC — Forensic Incident Report</h1>
+<p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+
+<h2>📋 Incident Summary</h2>
+<table>
+  <tr><th>Field</th><th>Value</th></tr>
+  <tr><td>Incident ID</td><td>#${inc.id}</td></tr>
+  <tr><td>Timestamp</td><td>${ts}</td></tr>
+  <tr><td>Category</td><td>${inc.category || 'N/A'}</td></tr>
+  <tr><td>Severity Level</td><td><span class="${inc.max_severity >= 12 ? 'badge-crit' : inc.max_severity >= 8 ? 'badge-warn' : 'badge-info'}">Level ${inc.max_severity}</span></td></tr>
+  <tr><td>Attacker IP</td><td>${inc.attacker_ip}</td></tr>
+  <tr><td>Target Asset</td><td>${inc.target_asset || 'N/A'}</td></tr>
+  <tr><td>Target User</td><td>${inc.target_user || 'N/A'}</td></tr>
+  <tr><td>Target Port</td><td>${inc.target_port || 'N/A'}</td></tr>
+</table>
+
+<h2>🌐 Threat Intelligence</h2>
+<table>
+  <tr><th>Field</th><th>Value</th></tr>
+  <tr><td>Country of Origin</td><td>${inc.country || 'Unknown'}</td></tr>
+  <tr><td>Network Owner (AS)</td><td>${inc.net_owner || 'Unknown'}</td></tr>
+  <tr><td>VirusTotal Score</td><td>${inc.vt_score !== undefined ? inc.vt_score + '%' : 'N/A'}</td></tr>
+  <tr><td>Event Count</td><td>${inc.event_count || 1}</td></tr>
+</table>
+
+<h2>⚡ Mitigation Action</h2>
+<p>${inc.action || 'No action recorded.'}</p>
+
+<h2>🤖 AI LLM Analysis Report</h2>
+<pre>${inc.ai_report || 'No AI report available for this incident.'}</pre>
+
+<div class="footer">
+  Confidential — AI SOC Automation Engine | Generated by SOC Dashboard | ${new Date().toISOString()}
+</div>
+</body></html>`;
+            const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SOC_Incident_Report_${inc.id}_${Date.now()}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ── Forensic Modal ────────────────────────────────────────
+        function ForensicModal({ inc, onClose }) {
+            if (!inc) return null;
+            const ts = new Date(inc.timestamp).toLocaleString();
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal-box" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>🔬 AI Forensic Analysis Station — Incident #{inc.id}</h3>
+                            <button className="modal-close" onClick={onClose}>✕</button>
+                        </div>
+                        <div className="modal-body">
+
+                            <div className="forensic-section">
+                                <h4>📋 Incident Metadata</h4>
+                                <div className="intel-grid">
+                                    <div className="intel-item"><label>Timestamp</label><span style={{ fontSize: '0.8rem' }}>{ts}</span></div>
+                                    <div className="intel-item"><label>Category</label><span>{inc.category}</span></div>
+                                    <div className="intel-item"><label>Severity</label><span className={`badge ${severityClass(inc.max_severity)}`}>Level {inc.max_severity}</span></div>
+                                    <div className="intel-item"><label>Events Count</label><span>{inc.event_count || 1}</span></div>
+                                    <div className="intel-item"><label>Target Asset</label><span>{inc.target_asset || 'N/A'}</span></div>
+                                    <div className="intel-item"><label>Target User</label><span>{inc.target_user || 'N/A'}</span></div>
+                                    <div className="intel-item"><label>Target Port</label><span>{inc.target_port || 'N/A'}</span></div>
+                                </div>
+                            </div>
+
+                            <div className="forensic-section">
+                                <h4>🌐 Threat Intelligence</h4>
+                                <div className="intel-grid">
+                                    <div className="intel-item"><label>Attacker IP</label><span style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: '0.85rem' }}>{inc.attacker_ip}</span></div>
+                                    <div className="intel-item"><label>Country</label><span>{inc.country || 'Unknown'}</span></div>
+                                    <div className="intel-item"><label>Network (AS)</label><span>{inc.net_owner || 'Unknown'}</span></div>
+                                    <div className="intel-item">
+                                        <label>VirusTotal Score</label>
+                                        <span style={{ color: inc.vt_score > 50 ? 'var(--accent-red)' : inc.vt_score > 20 ? 'var(--accent-yellow)' : 'var(--accent-green)' }}>
+                                            {inc.vt_score !== undefined ? inc.vt_score + '%' : 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="forensic-section">
+                                <h4>⚡ Mitigation Action Applied</h4>
+                                <div style={{ padding: '0.75rem 1rem', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                                    {inc.action || 'No automated action recorded.'}
+                                </div>
+                            </div>
+
+                            <div className="forensic-section">
+                                <h4>🤖 LLM AI Analysis Report</h4>
+                                <div className="ai-report-text">{inc.ai_report || 'No AI report available.'}</div>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '0.5rem' }}>
+                                <button className="export-btn" onClick={() => exportDocReport(inc)}>
+                                    📄 Export as .doc Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ── Main App ──────────────────────────────────────────────
+        function App() {
+            const [activeTab, setActiveTab] = useState('overview');
+            const [isDark, setIsDark] = useState(true);
+            const [metrics, setMetrics] = useState({ total_alerts: 0, isolated_vectors: 0, active_decoys: 0, ai_status: 'OFFLINE' });
+            const [incidents, setIncidents] = useState([]);
+            const [history, setHistory] = useState([]);
+            const [selectedInc, setSelectedInc] = useState(null);
+            const [currentPage, setCurrentPage] = useState(1);
+            const [search, setSearch] = useState('');
+            const ITEMS_PER_PAGE = 10;
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            }, [isDark]);
+
+            useEffect(() => {
+                const fetchData = async () => {
+                    try {
+                        const mRes = await fetch('/api/metrics/latest');
+                        if (mRes.ok) setMetrics(await mRes.json());
+                        const iRes = await fetch('/api/incidents?limit=500');
+                        if (iRes.ok) setIncidents(await iRes.json());
+                        const hRes = await fetch('/api/metrics/history');
+                        if (hRes.ok) setHistory(await hRes.json());
+                    } catch (e) { console.error('API error', e); }
+                };
+                fetchData();
+                const iv = setInterval(fetchData, 5000);
+                return () => clearInterval(iv);
+            }, []);
+
+            useEffect(() => {
+                if (history.length === 0) return;
+                const opts = {
+                    chart: { type: 'area', height: 300, toolbar: { show: false }, background: 'transparent' },
+                    colors: ['#3b82f6', '#ef4444'],
+                    theme: { mode: isDark ? 'dark' : 'light' },
+                    stroke: { curve: 'smooth', width: 2 },
+                    dataLabels: { enabled: false },
+                    series: [
+                        { name: 'Total Alerts', data: history.map(h => h.total_alerts) },
+                        { name: 'Isolated Threats', data: history.map(h => h.isolated_vectors) }
+                    ],
+                    xaxis: {
+                        categories: history.map(h => new Date(h.hour).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })),
+                        labels: { style: { colors: 'var(--text-secondary)' } }
+                    },
+                    yaxis: { labels: { style: { colors: 'var(--text-secondary)' } } },
+                    grid: { borderColor: 'var(--border-color)' }
+                };
+                if (chartRef.current) { chartRef.current.destroy(); }
+                const el = document.getElementById('trend-chart');
+                if (el) { chartRef.current = new ApexCharts(el, opts); chartRef.current.render(); }
+            }, [history, isDark, activeTab]);
+
+            // Filter + paginate
+            const filtered = incidents.filter(inc =>
+                !search ||
+                (inc.attacker_ip || '').includes(search) ||
+                (inc.category || '').toLowerCase().includes(search.toLowerCase()) ||
+                (inc.target_asset || '').toLowerCase().includes(search.toLowerCase())
+            );
+            const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+            const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+            const exportCSV = () => {
+                let csv = "data:text/csv;charset=utf-8,Time,Severity,Category,Attacker IP,Target,Action\n";
+                incidents.forEach(i => {
+                    csv += `"${i.timestamp}","${i.max_severity}","${i.category}","${i.attacker_ip}","${i.target_asset}","${i.action}"\n`;
+                });
+                const a = document.createElement('a');
+                a.href = encodeURI(csv);
+                a.download = `soc_incidents_${Date.now()}.csv`;
+                a.click();
+            };
+
+            const pageNumbers = () => {
+                const pages = [];
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) pages.push(i);
+                    else if (pages[pages.length - 1] !== '...') pages.push('...');
+                }
+                return pages;
+            };
+
+            return (
+                <div className="dashboard-container">
+                    {selectedInc && <ForensicModal inc={selectedInc} onClose={() => setSelectedInc(null)} />}
+
+                    {/* Sidebar */}
+                    <div className="sidebar">
+                        <div className="sidebar-header">🛡️ <span>AI SOC</span> Engine</div>
+                        <div className="nav-links">
+                            <div className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>📊 Executive Overview</div>
+                            <div className={`nav-item ${activeTab === 'incidents' ? 'active' : ''}`} onClick={() => setActiveTab('incidents')}>🚨 Live Incidents Feed</div>
+                        </div>
+                    </div>
+
+                    {/* Main */}
+                    <div className="main-content">
+                        <div className="header">
+                            <div className="search-container">
+                                🔍 <input type="text" placeholder="Search IP, category, asset…" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} />
+                            </div>
+                            <div className="header-actions">
+                                <button className="icon-btn" onClick={() => setIsDark(!isDark)}>{isDark ? '☀️' : '🌙'}</button>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-blue)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.65rem' }}>SOC</div>
+                            </div>
+                        </div>
+
+                        <div className="page-content">
+                            {activeTab === 'overview' && (
+                                <div>
+                                    <h2 className="page-title">Executive Overview</h2>
+                                    <div className="grid-cards">
+                                        <div className="metric-card"><h3>Total Alerts</h3><div className="value">{metrics.total_alerts}</div></div>
+                                        <div className="metric-card"><h3>Isolated Threat Vectors</h3><div className="value" style={{ color: 'var(--accent-red)' }}>{metrics.isolated_vectors}</div></div>
+                                        <div className="metric-card"><h3>Active Honeypots</h3><div className="value" style={{ color: 'var(--accent-green)' }}>{metrics.active_decoys}</div></div>
+                                        <div className="metric-card"><h3>AI Status</h3><div className="value"><span className={`badge ${metrics.ai_status === 'ONLINE' ? 'info' : 'warning'}`}>{metrics.ai_status}</span></div></div>
+                                    </div>
+                                    <div className="charts-grid">
+                                        <div className="chart-panel" style={{ gridColumn: 'span 2' }}>
+                                            <h3>Real-time Security Pipeline Trend</h3>
+                                            <div id="trend-chart" style={{ height: '300px' }}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'incidents' && (
+                                <div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+                                        <h2 className="page-title" style={{ marginBottom: 0 }}>Live Incident Feed <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '400' }}>({filtered.length} incidents)</span></h2>
+                                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                            <button onClick={exportCSV} style={{ padding: '0.6rem 1.2rem', background: 'var(--accent-green)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>⬇️ Export CSV</button>
+                                        </div>
+                                    </div>
+
+                                    <div className="data-table-container">
+                                        <table className="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Timestamp</th>
+                                                    <th>Severity</th>
+                                                    <th>Category</th>
+                                                    <th>Attacker IP</th>
+                                                    <th>Target</th>
+                                                    <th>Action</th>
+                                                    <th style={{ whiteSpace: 'nowrap' }}>Forensic Analysis</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {paginated.length > 0 ? paginated.map(inc => (
+                                                    <tr key={inc.id} className="row-clickable">
+                                                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>#{inc.id}</td>
+                                                        <td style={{ fontSize: '0.85rem' }}>{new Date(inc.timestamp).toLocaleString()}</td>
+                                                        <td><span className={`badge ${severityClass(inc.max_severity)}`}>Level {inc.max_severity}</span></td>
+                                                        <td style={{ fontWeight: '500' }}>{inc.category}</td>
+                                                        <td className="ip-addr">{inc.attacker_ip} <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>({inc.country || 'N/A'})</span></td>
+                                                        <td>{inc.target_asset}</td>
+                                                        <td style={{ fontSize: '0.82rem', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inc.action}</td>
+                                                        <td>
+                                                            <button onClick={() => setSelectedInc(inc)} style={{ padding: '0.35rem 0.75rem', background: 'var(--accent-blue)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: '600', whiteSpace: 'nowrap' }}>🔬 AI Forensic Analysis</button>
+                                                        </td>
+                                                    </tr>
+                                                )) : (
+                                                    <tr><td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                                                        {search ? 'No results match your search.' : 'No security threats detected yet. Monitoring Wazuh alerts…'}
+                                                    </td></tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+
+                                        {/* Pagination */}
+                                        {totalPages > 1 && (
+                                            <div className="pagination">
+                                                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginRight: '0.5rem' }}>
+                                                    Page {currentPage} of {totalPages}
+                                                </span>
+                                                <button className="page-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>‹</button>
+                                                {pageNumbers().map((p, i) =>
+                                                    p === '...'
+                                                        ? <span key={i} style={{ padding: '0 4px', color: 'var(--text-secondary)' }}>…</span>
+                                                        : <button key={i} className={`page-btn ${p === currentPage ? 'active' : ''}`} onClick={() => setCurrentPage(p)}>{p}</button>
+                                                )}
+                                                <button className="page-btn" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>›</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+<!--
+  ========================================================================
+  Custom Wazuh Decoders for Cowrie and Honey-Token Events
+  Place in /var/ossec/etc/decoders/local_decoder.xml on Wazuh Manager
+  ========================================================================
+-->
+<decoder name="cowrie-custom">
+  <prematch>cowrie</prematch>
+</decoder>
+
+<decoder name="cowrie-custom-json">
+  <parent>cowrie-custom</parent>
+  <plugin_decoder>JSON_Decoder</plugin_decoder>
+</decoder>

@@ -1,0 +1,29 @@
+<!--
+  ========================================================================
+  Wazuh Agent File Integrity Monitoring (FIM / Syscheck) Configuration
+  Add this block inside /var/ossec/etc/ossec.conf on the Ubuntu Victim Server
+  ========================================================================
+-->
+<syscheck>
+  <disabled>no</disabled>
+  <frequency>43200</frequency>
+  <scan_on_start>yes</scan_on_start>
+
+  <!-- Real-time monitoring on critical system directories -->
+  <directories realtime="yes" report_changes="yes" check_all="yes">/etc,/usr/bin,/usr/sbin</directories>
+  <directories realtime="yes" report_changes="yes" check_all="yes">/var/www/html</directories>
+  <directories check_all="yes">/bin,/sbin,/boot</directories>
+
+  <!-- Ignore volatile files to eliminate false positives -->
+  <ignore>/etc/mtab</ignore>
+  <ignore>/etc/hosts.deny</ignore>
+  <ignore>/etc/mail/statistics</ignore>
+  <ignore type="sregex">\.log$|\.swp$</ignore>
+
+  <!-- Integrity check synchronization -->
+  <synchronization>
+    <enabled>yes</enabled>
+    <interval>10m</interval>
+    <response_timeout>30</response_timeout>
+  </synchronization>
+</syscheck>
