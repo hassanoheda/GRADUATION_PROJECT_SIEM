@@ -6,7 +6,7 @@ Proactive AI-driven SIEM system with deception integration, Wazuh rules, custom 
 This repository contains the full stack configuration and code for our AI-driven SOC:
 - **SOC Dashboard**: A modern frontend application (`/frontend`) for monitoring and interacting with the system.
 - **API Component**: Python backend (`api.py`) exposing endpoints for the dashboard and other integrations.
-- **Wazuh Rules**: Custom Wazuh rules and decoders used to generate alerts.
+- **Wazuh Rules**: Custom Wazuh rules generate alerts.
 - **Brain Engine**: `brain.py` (AI alert processing engine) - evaluates threats and triggers proactive deception and responses.
 
 ## Setup & Execution

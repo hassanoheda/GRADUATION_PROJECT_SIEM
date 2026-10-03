@@ -12,6 +12,9 @@ import sys
 from datetime import datetime, timedelta
 from requests.auth import HTTPBasicAuth
 from netmiko import ConnectHandler
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # مكتبات إرسال البريد الإلكتروني
 import smtplib
@@ -31,10 +34,10 @@ router_lock = threading.Lock()
 console_lock = threading.Lock()
 
 # --- إعدادات الاتصال بـ Wazuh Indexer ---
-WAZUH_IP = "10.10.10.10"
-INDEXER_PORT = 9200
-USER = "admin"
-PASS = "admin"
+WAZUH_IP = os.getenv("WAZUH_IP", "10.10.10.10")
+INDEXER_PORT = int(os.getenv("INDEXER_PORT", 9200))
+USER = os.getenv("WAZUH_USER", "")
+PASS = os.getenv("WAZUH_PASS", "")
 INDEXER_URL = f"https://{WAZUH_IP}:{INDEXER_PORT}/wazuh-alerts-*/_search"
 
 # =================================================================
@@ -46,20 +49,20 @@ PROCESSED_SCA_CHECKS = set()
 # إعدادات الدخول لسيرفر الأوبنتو لتطبيق الإصلاح التلقائي
 UBUNTU_TARGET = {
     'device_type': 'linux',
-    'host': '10.0.0.20',
-    'port': 2222,
-    'username': 'hassan', 
-    'password': 'hh666', 
+    'host': os.getenv("UBUNTU_TARGET_HOST", '10.0.0.20'),
+    'port': int(os.getenv("UBUNTU_TARGET_PORT", 2222)),
+    'username': os.getenv("UBUNTU_TARGET_USER", ''), 
+    'password': os.getenv("UBUNTU_TARGET_PASS", ''), 
     'use_keys': False
 }
 # =================================================================
 
 # --- إعدادات LLaMA (tinyllama) ---
-LLAMA_URL = "http://localhost:11434/api/generate"
-LLAMA_MODEL = "tinyllama"
+LLAMA_URL = os.getenv("LLAMA_URL", "http://localhost:11434/api/generate")
+LLAMA_MODEL = os.getenv("LLAMA_MODEL", "tinyllama")
 
 # --- إعدادات Threat Intelligence (VirusTotal) ---
-VIRUSTOTAL_API_KEY = "7d8a48694d43f0a0f63b3cb2010022a8508287980350f91cb31796cc9bfa726b" 
+VIRUSTOTAL_API_KEY = os.getenv("VIRUSTOTAL_API_KEY", "") 
 
 # =================================================================
 # --- إعدادات عتبة الأمان والأصول وتصنيفها الأمني ---
@@ -413,9 +416,9 @@ def check_file_reputation(file_hash):
     return {"malicious": 0, "total": 0}
 
 def send_email_alert_silent(report_content):
-    sender_email = "hassanoheda66@gmail.com"
-    sender_password = "hakcbjoqiahqxfrf"
-    receiver_email = "hassanoheda66@gmail.com"
+    sender_email = os.getenv("SENDER_EMAIL", "")
+    sender_password = os.getenv("SENDER_PASSWORD", "")
+    receiver_email = os.getenv("RECEIVER_EMAIL", "")
     
     alert_type = "INTERNAL" if "INTERNAL THREAT" in report_content else "EXTERNAL"
     if "LOCAL SYSTEM" in report_content:
@@ -699,9 +702,9 @@ def generate_adaptive_deception_silent(alert, attack_type_str):
 def apply_router_acl(attacker_ip, action="block"):
     cisco_router = {
         'device_type': 'cisco_ios',
-        'host': '192.168.52.254', 
-        'username': 'admin',      
-        'password': 'admin',      
+        'host': os.getenv("ROUTER_HOST", '192.168.52.254'), 
+        'username': os.getenv("ROUTER_USER", ''),      
+        'password': os.getenv("ROUTER_PASS", ''),      
         'timeout': 30,               
         'auth_timeout': 30,          
         'banner_timeout': 30,        

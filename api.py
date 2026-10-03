@@ -5,6 +5,10 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import os
+# pyrefly: ignore [missing-import]
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI(title="SOC Pipeline API")
 
@@ -13,10 +17,9 @@ app.add_middleware(
     allow_origins=["*"],  # Adjust in production
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
 )
 
-DB_PATH = r"C:\Users\Lenovo\Desktop\soc_pipeline.db"
+DB_PATH = os.getenv("DB_PATH", r"C:\Users\Lenovo\Desktop\soc_pipeline.db")
 
 @app.get("/", response_class=HTMLResponse)
 def get_dashboard():
