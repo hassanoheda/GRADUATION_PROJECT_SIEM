@@ -16,9 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DB_PATH = os.getenv("DB_PATH", os.path.join(os.path.dirname(__file__), "soc_pipeline.db"))
-if not os.path.exists(DB_PATH) and os.path.exists(r"C:\Users\Lenovo\Desktop\soc_pipeline.db"):
-    DB_PATH = r"C:\Users\Lenovo\Desktop\soc_pipeline.db"
+DB_PATH = r"C:\Users\Lenovo\Desktop\soc_pipeline.db"
 
 @app.get("/", response_class=HTMLResponse)
 def get_dashboard():

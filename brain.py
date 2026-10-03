@@ -30,13 +30,12 @@ data_lock = threading.Lock()
 router_lock = threading.Lock()
 console_lock = threading.Lock()
 
-# --- Configuration Settings (Environment Variables supported with Lab Defaults) ---
-WAZUH_IP = os.getenv("WAZUH_IP", "10.10.10.10")
-INDEXER_PORT = int(os.getenv("INDEXER_PORT", "9200"))
-USER = os.getenv("WAZUH_USER", "admin")
-PASS = os.getenv("WAZUH_PASS", "admin")
+# --- إعدادات الاتصال بـ Wazuh Indexer ---
+WAZUH_IP = "10.10.10.10"
+INDEXER_PORT = 9200
+USER = "admin"
+PASS = "admin"
 INDEXER_URL = f"https://{WAZUH_IP}:{INDEXER_PORT}/wazuh-alerts-*/_search"
-
 
 # =================================================================
 # [=== PROACTIVE HARDENING MODULE SETTINGS ===]
