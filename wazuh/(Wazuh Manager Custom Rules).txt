@@ -1,0 +1,21 @@
+(Wazuh Manager Custom Rules)بناء قواعد الكشف المخصصة على الخادم الرئيسي 
+
+<group name="local,syslog,sshd,">
+
+  <rule id="100050" level="12">
+    <if_sid>550</if_sid> <match>/etc/passwd|/etc/shadow|/etc/sudoers|/etc/netplan</match>
+    <description>Critical Alert: Unexpected modification in identity or network configuration files!</description>
+    <mitre>
+      <id>T1484</id> </mitre>
+  </rule>
+
+  <rule id="100051" level="10">
+    <if_sid>554</if_sid> <match>/usr/bin/|/usr/sbin/|/bin/|/sbin/</match>
+    <description>Suspicious Behavior: New executable binary injected into critical system paths.</description>
+    <mitre>
+      <id>T1036</id> </mitre>
+  </rule>
+
+</group>
+وتم تفعيل هذه القواعد وتطبيقها بواسطة الأمر:
+sudo systemctl restart wazuh-manager.
